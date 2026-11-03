@@ -43,36 +43,19 @@ class _LoginPageState extends State<LoginPage> {
         phone: _phone.text.trim(),
         onCodeSent: (verificationId, resendToken) {
           if (!mounted) return;
-          Navigator.push<bool>(
-            context,
-            MaterialPageRoute(
-              builder: (_) => OtpVerificationPage(
-                phone: _phone.text.trim(),
-                verificationId: verificationId,
-              ),
-            ),
-          ).then((verified) {
-            if (verified == true && mounted && auth.user != null) {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.homeFor(auth.user!),
-                (_) => false,
-              );
-            }
-          });
+          _openOtpScreen(context, auth, verificationId);
         },
         onError: (err) {
           if (!mounted) return;
-          SnackbarHelper.error(context, err);
-          // Still permit testing via simulated flow
-          Navigator.push<bool>(
-            context,
-            MaterialPageRoute(
-              builder: (_) => OtpVerificationPage(
-                phone: _phone.text.trim(),
-              ),
-            ),
-          );
+          if (err.contains('operation-not-allowed') || err.contains('disabled')) {
+            SnackbarHelper.error(
+              context,
+              'Phone Auth disabled in Firebase console. Switched to Test Mode (Code: 123456)',
+            );
+          } else {
+            SnackbarHelper.error(context, err);
+          }
+          _openOtpScreen(context, auth, null);
         },
       );
       return;
@@ -90,6 +73,30 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       SnackbarHelper.error(context, auth.error ?? 'Login failed');
     }
+  }
+
+  void _openOtpScreen(BuildContext context, AuthProvider auth, String? verificationId) {
+    final nav = Navigator.of(context);
+    nav.push<bool>(
+      MaterialPageRoute(
+        builder: (_) => OtpVerificationPage(
+          phone: _phone.text.trim(),
+          verificationId: verificationId,
+        ),
+      ),
+    ).then((verified) async {
+      if (verified == true && mounted) {
+        if (auth.user == null) {
+          await auth.loginWithDemoPhone(_phone.text.trim());
+        }
+        if (mounted && auth.user != null) {
+          nav.pushNamedAndRemoveUntil(
+            AppRoutes.homeFor(auth.user!),
+            (_) => false,
+          );
+        }
+      }
+    });
   }
 
   @override

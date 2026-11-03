@@ -9,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
+import 'features/auth/domain/usecases/demo_login_with_phone_usecase.dart';
 import 'features/auth/domain/usecases/get_session_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/login_with_phone_usecase.dart';
@@ -73,6 +74,7 @@ class MyApp extends StatelessWidget {
             getSession: GetSessionUseCase(authRepo),
             verifyPhone: VerifyPhoneUseCase(authRepo),
             loginWithPhone: LoginWithPhoneUseCase(authRepo),
+            demoLoginWithPhone: DemoLoginWithPhoneUseCase(authRepo),
           ), // session is checked by SplashPage
         ),
 

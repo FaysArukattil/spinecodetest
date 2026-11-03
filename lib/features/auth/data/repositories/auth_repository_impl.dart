@@ -73,4 +73,11 @@ class AuthRepositoryImpl implements AuthRepository {
     await local.saveSession(user);
     return user;
   }
+
+  @override
+  Future<UserEntity> demoLoginWithPhone(String phone) async {
+    final user = await remote.demoLoginWithPhone(phone);
+    await local.saveSession(user);
+    return user;
+  }
 }

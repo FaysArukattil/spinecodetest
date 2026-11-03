@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/demo_login_with_phone_usecase.dart';
 import '../../domain/usecases/get_session_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/login_with_phone_usecase.dart';
@@ -17,6 +18,7 @@ class AuthProvider extends ChangeNotifier {
   final GetSessionUseCase _getSession;
   final VerifyPhoneUseCase _verifyPhone;
   final LoginWithPhoneUseCase _loginWithPhone;
+  final DemoLoginWithPhoneUseCase _demoLoginWithPhone;
 
   AuthProvider({
     required LoginUseCase login,
@@ -24,11 +26,13 @@ class AuthProvider extends ChangeNotifier {
     required GetSessionUseCase getSession,
     required VerifyPhoneUseCase verifyPhone,
     required LoginWithPhoneUseCase loginWithPhone,
+    required DemoLoginWithPhoneUseCase demoLoginWithPhone,
   }) : _login = login,
        _logout = logout,
        _getSession = getSession,
        _verifyPhone = verifyPhone,
-       _loginWithPhone = loginWithPhone;
+       _loginWithPhone = loginWithPhone,
+       _demoLoginWithPhone = demoLoginWithPhone;
 
   AuthStatus _status = AuthStatus.unknown;
   UserEntity? _user;
@@ -129,6 +133,21 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _error = Failure.from(e).message;
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loginWithDemoPhone(String phone) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _user = await _demoLoginWithPhone(phone);
+      _status = AuthStatus.authenticated;
+    } catch (e) {
+      _error = Failure.from(e).message;
     } finally {
       _isLoading = false;
       notifyListeners();

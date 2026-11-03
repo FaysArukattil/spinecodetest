@@ -85,6 +85,34 @@ class AuthRemoteDataSource {
     );
   }
 
+  /// Demo login when phone provider is not yet enabled in Firebase Console.
+  Future<UserModel> demoLoginWithPhone(String phone) async {
+    final clean = phone.replaceAll(RegExp(r'\D'), '');
+    try {
+      final snap = await _db
+          .collection(FirestoreKeys.shops)
+          .where(FirestoreKeys.phone, isEqualTo: clean)
+          .limit(1)
+          .get();
+      if (snap.docs.isNotEmpty) {
+        final d = snap.docs.first;
+        return UserModel(
+          id: d.id,
+          name: (d.data()[FirestoreKeys.shopName] ?? 'Shop') as String,
+          email: (d.data()[FirestoreKeys.email] ?? '') as String,
+          role: AppConstants.roleShop,
+        );
+      }
+    } catch (_) {}
+
+    return const UserModel(
+      id: 'store_demo_uid',
+      name: 'Fresh Vegetables Store Admin',
+      email: 'store@test.com',
+      role: AppConstants.roleStore,
+    );
+  }
+
   /// Loads the user profile and enforces: valid role + shop must be Active.
   Future<UserModel> _loadUser(String uid) async {
     final doc = await _db.collection(FirestoreKeys.users).doc(uid).get();

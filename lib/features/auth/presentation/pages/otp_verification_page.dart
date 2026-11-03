@@ -162,6 +162,21 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                         textAlign: TextAlign.center,
                         style: AppTextStyles.caption.copyWith(fontSize: 12),
                       ),
+                      if (widget.verificationId == null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceAlt,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: const Text(
+                            'Demo Mode: Enter code 123456',
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
                       SizedBox(height: isCompactHeight ? 16 : 28),
 
                       // Responsive 6 PIN Boxes (Figma)
