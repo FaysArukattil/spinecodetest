@@ -11,6 +11,8 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+FLUTTER_MACHINE_TEST*
+*.docx
 
 # IntelliJ related
 *.iml
