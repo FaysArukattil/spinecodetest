@@ -23,25 +23,6 @@
           "other_platform_oauth_client": []
         }
       }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:766455134526:android:3188ac7a18390fd2fbd46f",
-        "android_client_info": {
-          "package_name": "com.faysarukattil.spinecodetest"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCDVJVJFBdhpDMCx8Dj2vcgIV2Vk752Oqs"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
     }
   ],
   "configuration_version": "1"
