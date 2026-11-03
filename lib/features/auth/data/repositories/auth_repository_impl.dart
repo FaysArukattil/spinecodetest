@@ -80,4 +80,8 @@ class AuthRepositoryImpl implements AuthRepository {
     await local.saveSession(user);
     return user;
   }
+
+  @override
+  Future<void> checkShopRegistered(String phone) =>
+      remote.checkShopRegistered(phone);
 }

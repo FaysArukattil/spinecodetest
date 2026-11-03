@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/check_shop_phone_usecase.dart';
 import '../../domain/usecases/demo_login_with_phone_usecase.dart';
 import '../../domain/usecases/get_session_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
@@ -19,6 +20,7 @@ class AuthProvider extends ChangeNotifier {
   final VerifyPhoneUseCase _verifyPhone;
   final LoginWithPhoneUseCase _loginWithPhone;
   final DemoLoginWithPhoneUseCase _demoLoginWithPhone;
+  final CheckShopPhoneUseCase _checkShopPhone;
 
   AuthProvider({
     required LoginUseCase login,
@@ -27,12 +29,14 @@ class AuthProvider extends ChangeNotifier {
     required VerifyPhoneUseCase verifyPhone,
     required LoginWithPhoneUseCase loginWithPhone,
     required DemoLoginWithPhoneUseCase demoLoginWithPhone,
+    required CheckShopPhoneUseCase checkShopPhone,
   }) : _login = login,
        _logout = logout,
        _getSession = getSession,
        _verifyPhone = verifyPhone,
        _loginWithPhone = loginWithPhone,
-       _demoLoginWithPhone = demoLoginWithPhone;
+       _demoLoginWithPhone = demoLoginWithPhone,
+       _checkShopPhone = checkShopPhone;
 
   AuthStatus _status = AuthStatus.unknown;
   UserEntity? _user;
@@ -150,6 +154,25 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _error = Failure.from(e).message;
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Verifies that the phone number is registered to an active shop.
+  /// Returns null if valid, or an error message if unauthorized.
+  Future<String?> checkShopPhone(String phone) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await _checkShopPhone(phone);
+      return null;
+    } catch (e) {
+      final msg = Failure.from(e).message;
+      _error = msg;
+      return msg;
     } finally {
       _isLoading = false;
       notifyListeners();

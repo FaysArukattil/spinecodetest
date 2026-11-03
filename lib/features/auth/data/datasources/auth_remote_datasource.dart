@@ -103,6 +103,31 @@ class AuthRemoteDataSource {
     );
   }
 
+  /// Verifies that a phone number belongs to an active registered shop before dispatching OTP.
+  Future<void> checkShopRegistered(String phone) async {
+    final clean = phone.replaceAll(RegExp(r'\D'), '');
+    final tenDigit = clean.length >= 10 ? clean.substring(clean.length - 10) : clean;
+    if (tenDigit.length < 10) {
+      throw const AppException('Please enter a valid 10-digit mobile number.');
+    }
+    final snap = await _db
+        .collection(FirestoreKeys.shops)
+        .where(FirestoreKeys.phone, isEqualTo: tenDigit)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) {
+      throw const AppException(
+        'This mobile number is not registered with any shop. Please contact the store administrator.',
+      );
+    }
+    final d = snap.docs.first;
+    if (d.data()[FirestoreKeys.status] != AppConstants.shopActive) {
+      throw const AppException(
+        'Your shop has been blocked. Please contact the store.',
+      );
+    }
+  }
+
   /// Demo login when phone provider is not yet enabled in Firebase Console.
   Future<UserModel> demoLoginWithPhone(String phone) async {
     final clean = phone.replaceAll(RegExp(r'\D'), '');

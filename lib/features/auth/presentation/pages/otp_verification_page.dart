@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../providers/auth_provider.dart';
 
@@ -78,33 +77,37 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
         SnackbarHelper.success(context, 'Signed in successfully via phone verification!');
         Navigator.pop(context, true);
       } else {
-        SnackbarHelper.error(context, auth.error ?? 'Invalid verification code.');
+        SnackbarHelper.error(
+          context,
+          auth.error ?? 'Invalid verification code. Please check and try again.',
+        );
       }
       return;
     }
 
-    final auth = context.read<AuthProvider>();
-    final ok = await auth.loginWithDemoPhone(widget.phone);
     if (!mounted) return;
     setState(() => _isVerifying = false);
-    if (ok) {
-      SnackbarHelper.success(context, 'Mobile number verified successfully!');
-      Navigator.pop(context, true);
-    } else {
-      SnackbarHelper.error(
-        context,
-        auth.error ?? 'This phone number is not registered with any shop.',
-      );
-    }
+    SnackbarHelper.error(context, 'Verification session expired. Please request a new code.');
   }
 
   void _resendCode() {
     if (_resendCountdown > 0) return;
+    final auth = context.read<AuthProvider>();
     _otpController.clear();
     _focusNode.requestFocus();
     _startTimer();
     setState(() {});
-    SnackbarHelper.success(context, 'A new verification code has been sent.');
+    auth.sendPhoneOtp(
+      phone: widget.phone,
+      onCodeSent: (id, token) {
+        if (!mounted) return;
+        SnackbarHelper.success(context, 'A new verification code has been sent.');
+      },
+      onError: (err) {
+        if (!mounted) return;
+        SnackbarHelper.error(context, err);
+      },
+    );
   }
 
   @override
@@ -168,26 +171,6 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                       height: 1.4,
                     ),
                   ),
-
-                  if (widget.verificationId == null) ...[
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceAlt,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Text(
-                        'Test Mode: Enter code 123456',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
 
                   SizedBox(height: isCompactHeight ? 20 : 32),
 

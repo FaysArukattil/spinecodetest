@@ -39,23 +39,25 @@ class _LoginPageState extends State<LoginPage> {
 
     if (_usePhoneOtp) {
       final auth = context.read<AuthProvider>();
+      final phone = _phone.text.trim();
+
+      // Only registered active shops can proceed to the OTP screen
+      final checkError = await auth.checkShopPhone(phone);
+      if (!mounted) return;
+      if (checkError != null) {
+        SnackbarHelper.error(context, checkError);
+        return;
+      }
+
       await auth.sendPhoneOtp(
-        phone: _phone.text.trim(),
+        phone: phone,
         onCodeSent: (verificationId, resendToken) {
           if (!mounted) return;
           _openOtpScreen(context, auth, verificationId);
         },
         onError: (err) {
           if (!mounted) return;
-          if (err.contains('operation-not-allowed') || err.contains('disabled')) {
-            SnackbarHelper.error(
-              context,
-              'Phone Auth disabled in Firebase console. Switched to Test Mode (Code: 123456)',
-            );
-          } else {
-            SnackbarHelper.error(context, err);
-          }
-          _openOtpScreen(context, auth, null);
+          SnackbarHelper.error(context, err);
         },
       );
       return;

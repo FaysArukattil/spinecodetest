@@ -15,4 +15,5 @@ abstract class AuthRepository {
 
   Future<UserEntity> loginWithPhone(String verificationId, String smsCode);
   Future<UserEntity> demoLoginWithPhone(String phone);
+  Future<void> checkShopRegistered(String phone);
 }
