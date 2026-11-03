@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/shop_theme.dart';
+import '../../../../core/utils/invoice_printer.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/empty_state.dart';
@@ -43,7 +44,16 @@ class ShopOrderDetailPage extends StatelessWidget {
     return ShopTheme(
       child: Scaffold(
         appBar: AppBar(
-            title: const Text('Order Details', style: TextStyle(fontSize: 16))),
+          title: const Text('Order Details', style: TextStyle(fontSize: 16)),
+          actions: [
+            if (order != null)
+              IconButton(
+                icon: const Icon(Icons.print_outlined),
+                tooltip: 'Print Invoice',
+                onPressed: () => InvoicePrinter.printInvoice(order),
+              ),
+          ],
+        ),
         body: order == null
             ? const EmptyState(
                 message: 'Order not found', icon: Icons.receipt_long_outlined)

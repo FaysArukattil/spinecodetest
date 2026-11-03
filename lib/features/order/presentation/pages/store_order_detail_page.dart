@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/invoice_printer.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -119,65 +119,17 @@ class StoreOrderDetailPage extends StatelessWidget {
     );
   }
 
-  void _printInvoice(BuildContext context, OrderEntity o) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.receipt_long, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text('Invoice Preview', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Order ID: ${o.displayId}',
-                style: const TextStyle(fontWeight: FontWeight.w700)),
-            Text('Shop: ${o.shopName}'),
-            Text('Date: ${DateFormatter.compact(o.createdAt)}'),
-            const Divider(height: 16),
-            for (final i in o.items)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    Expanded(child: Text(i.name, style: const TextStyle(fontSize: 12))),
-                    Text(
-                        '${Formatters.qty(i.quantity)} ${i.unit} - ${Formatters.money(i.lineTotal)}',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            const Divider(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.w700)),
-                Text(Formatters.money(o.totalAmount),
-                    style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.print, size: 16),
-            label: const Text('Print'),
-            onPressed: () {
-              Navigator.pop(ctx);
-              SnackbarHelper.success(context, 'Invoice printed successfully');
-            },
-          ),
-        ],
-      ),
-    );
+  Future<void> _printInvoice(BuildContext context, OrderEntity o) async {
+    try {
+      await InvoicePrinter.printInvoice(o);
+      if (context.mounted) {
+        SnackbarHelper.success(context, 'Invoice printed successfully');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        SnackbarHelper.error(context, 'Failed to print invoice: $e');
+      }
+    }
   }
 
   void _editOrderQuantities(BuildContext context, OrderEntity o) {

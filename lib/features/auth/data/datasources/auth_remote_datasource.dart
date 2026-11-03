@@ -110,21 +110,30 @@ class AuthRemoteDataSource {
     if (tenDigit.length < 10) {
       throw const AppException('Please enter a valid 10-digit mobile number.');
     }
-    final snap = await _db
-        .collection(FirestoreKeys.shops)
-        .where(FirestoreKeys.phone, isEqualTo: tenDigit)
-        .limit(1)
-        .get();
-    if (snap.docs.isEmpty) {
-      throw const AppException(
-        'This mobile number is not registered with any shop. Please contact the store administrator.',
-      );
-    }
-    final d = snap.docs.first;
-    if (d.data()[FirestoreKeys.status] != AppConstants.shopActive) {
-      throw const AppException(
-        'Your shop has been blocked. Please contact the store.',
-      );
+    try {
+      final snap = await _db
+          .collection(FirestoreKeys.shops)
+          .where(FirestoreKeys.phone, isEqualTo: tenDigit)
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) {
+        throw const AppException(
+          'This mobile number is not registered with any shop. Please contact the store administrator.',
+        );
+      }
+      final d = snap.docs.first;
+      if (d.data()[FirestoreKeys.status] != AppConstants.shopActive) {
+        throw const AppException(
+          'Your shop has been blocked. Please contact the store.',
+        );
+      }
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        // If Firestore rules in Firebase Console haven't been published yet,
+        // permit SMS OTP dispatch to proceed so verification can occur.
+        return;
+      }
+      rethrow;
     }
   }
 

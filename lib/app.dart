@@ -6,6 +6,7 @@ import 'core/constants/app_constants.dart';
 import 'core/routes/app_routes.dart';
 import 'core/routes/route_generator.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/internet_connectivity_watcher.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
@@ -147,6 +148,8 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.light,
         initialRoute: AppRoutes.splash,
         onGenerateRoute: RouteGenerator.generate,
+        builder: (context, child) =>
+            InternetConnectivityWatcher(child: child ?? const SizedBox()),
       ),
     );
   }

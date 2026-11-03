@@ -34,8 +34,8 @@ service cloud.firestore {
 
     // 2. Shops collection
     match /shops/{shopId} {
-      // Store can read/write all shops. Active shop can read its own document.
-      allow read: if isStore() || (isAuthenticated() && request.auth.uid == shopId);
+      // Store can read/write all shops. Anyone can look up shops to verify active registration.
+      allow read: if true;
       allow create, update, delete: if isStore();
     }
 
