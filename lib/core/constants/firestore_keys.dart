@@ -12,6 +12,7 @@ class FirestoreKeys {
 
   // vegetable
   static const name = 'name';
+  static const sortNumber = 'sortNumber';
   static const price = 'price';
   static const unit = 'unit';
   static const stockQuantity = 'stockQuantity';

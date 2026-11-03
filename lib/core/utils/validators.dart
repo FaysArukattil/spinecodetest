@@ -17,15 +17,23 @@ class Validators {
   }
 
   static String? phone(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Phone number is required';
+    if (v == null || v.trim().isEmpty) return 'Mobile number is required';
     return RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())
         ? null
-        : 'Enter a valid 10-digit phone number';
+        : 'Enter a valid 10-digit mobile number';
   }
 
   static String? name(String? v, [String field = 'Name']) {
     if (v == null || v.trim().isEmpty) return '$field is required';
     if (v.trim().length < 2) return '$field is too short';
+    return null;
+  }
+
+  static String? sortNumber(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Sort number is required';
+    final n = int.tryParse(v.trim());
+    if (n == null) return 'Enter a whole number';
+    if (n < 1) return 'Must be 1 or more';
     return null;
   }
 
@@ -43,6 +51,12 @@ class Validators {
     final n = double.tryParse(v.trim());
     if (n == null) return 'Enter a valid number';
     if (n < 0) return 'Stock cannot be negative';
+    return null;
+  }
+
+  static String? wholeNumber(String? v) {
+    final n = double.tryParse((v ?? '').trim());
+    if (n != null && n % 1 != 0) return 'Enter a whole number for this unit';
     return null;
   }
 }

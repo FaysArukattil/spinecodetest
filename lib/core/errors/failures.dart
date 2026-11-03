@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'exceptions.dart';
 
 class Failure {
@@ -23,8 +23,22 @@ class Failure {
           return const Failure('Too many attempts. Try again later.');
         case 'network-request-failed':
           return const Failure('No internet connection.');
+        case 'email-already-in-use':
+          return const Failure('This email is already registered.');
+        case 'weak-password':
+          return const Failure('Password is too weak (min 6 characters).');
         default:
           return Failure(e.message ?? 'Authentication failed.');
+      }
+    }
+    if (e is FirebaseException) {
+      switch (e.code) {
+        case 'permission-denied':
+          return const Failure('You do not have permission to do this.');
+        case 'unavailable':
+          return const Failure('No internet connection.');
+        default:
+          return Failure(e.message ?? 'Something went wrong.');
       }
     }
     return const Failure('Something went wrong. Please try again.');

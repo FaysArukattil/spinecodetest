@@ -13,6 +13,29 @@ import 'features/auth/domain/usecases/get_session_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/order/data/datasources/order_remote_datasource.dart';
+import 'features/order/data/repositories/order_repository_impl.dart';
+import 'features/order/domain/usecases/cancel_order_usecase.dart';
+import 'features/order/domain/usecases/get_orders_usecase.dart';
+import 'features/order/domain/usecases/get_shop_orders_usecase.dart';
+import 'features/order/domain/usecases/place_order_usecase.dart';
+import 'features/order/domain/usecases/update_order_status_usecase.dart';
+import 'features/order/presentation/providers/order_provider.dart';
+import 'features/shop/data/datasources/shop_remote_datasource.dart';
+import 'features/shop/data/repositories/shop_repository_impl.dart';
+import 'features/shop/domain/usecases/add_shop_usecase.dart';
+import 'features/shop/domain/usecases/delete_shop_usecase.dart';
+import 'features/shop/domain/usecases/get_shops_usecase.dart';
+import 'features/shop/domain/usecases/toggle_shop_status_usecase.dart';
+import 'features/shop/domain/usecases/update_shop_usecase.dart';
+import 'features/shop/presentation/providers/shop_provider.dart';
+import 'features/vegetable/data/datasources/vegetable_remote_datasource.dart';
+import 'features/vegetable/data/repositories/vegetable_repository_impl.dart';
+import 'features/vegetable/domain/usecases/add_vegetable_usecase.dart';
+import 'features/vegetable/domain/usecases/delete_vegetable_usecase.dart';
+import 'features/vegetable/domain/usecases/get_vegetables_usecase.dart';
+import 'features/vegetable/domain/usecases/update_vegetable_usecase.dart';
+import 'features/vegetable/presentation/providers/vegetable_provider.dart';
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
@@ -20,10 +43,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- dependency wiring (data -> domain -> presentation) ---
     final authRepo = AuthRepositoryImpl(
       remote: AuthRemoteDataSource(),
       local: AuthLocalDataSource(prefs),
     );
+    final vegRepo = VegetableRepositoryImpl(VegetableRemoteDataSource());
+    final shopRepo = ShopRepositoryImpl(ShopRemoteDataSource());
+    final orderRepo = OrderRepositoryImpl(OrderRemoteDataSource());
 
     return MultiProvider(
       providers: [
@@ -34,7 +61,46 @@ class MyApp extends StatelessWidget {
             getSession: GetSessionUseCase(authRepo),
           ), // session is checked by SplashPage
         ),
-        // more providers get added here in later steps
+
+        // The proxies below stop each Firestore listener when the user logs out.
+        ChangeNotifierProxyProvider<AuthProvider, VegetableProvider>(
+          create: (_) => VegetableProvider(
+            getVegetables: GetVegetablesUseCase(vegRepo),
+            addVegetable: AddVegetableUseCase(vegRepo),
+            updateVegetable: UpdateVegetableUseCase(vegRepo),
+            deleteVegetable: DeleteVegetableUseCase(vegRepo),
+          ),
+          update: (_, auth, previous) {
+            if (auth.status != AuthStatus.authenticated) previous!.stop();
+            return previous!;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ShopProvider>(
+          create: (_) => ShopProvider(
+            getShops: GetShopsUseCase(shopRepo),
+            addShop: AddShopUseCase(shopRepo),
+            updateShop: UpdateShopUseCase(shopRepo),
+            deleteShop: DeleteShopUseCase(shopRepo),
+            toggleStatus: ToggleShopStatusUseCase(shopRepo),
+          ),
+          update: (_, auth, previous) {
+            if (auth.status != AuthStatus.authenticated) previous!.stop();
+            return previous!;
+          },
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, OrderProvider>(
+          create: (_) => OrderProvider(
+            getOrders: GetOrdersUseCase(orderRepo),
+            getShopOrders: GetShopOrdersUseCase(orderRepo),
+            placeOrder: PlaceOrderUseCase(orderRepo),
+            updateStatus: UpdateOrderStatusUseCase(orderRepo),
+            cancelOrder: CancelOrderUseCase(orderRepo),
+          ),
+          update: (_, auth, previous) {
+            if (auth.status != AuthStatus.authenticated) previous!.stop();
+            return previous!;
+          },
+        ),
       ],
       child: MaterialApp(
         title: AppConstants.appName,

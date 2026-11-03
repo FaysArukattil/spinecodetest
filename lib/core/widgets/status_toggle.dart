@@ -1,52 +1,46 @@
 import 'package:flutter/material.dart';
-
 import '../theme/app_colors.dart';
 
+/// Green "Available/Active" / red "Unavailable/Inactive" pill with a switch.
 class StatusToggle extends StatelessWidget {
   final bool value;
+  final String onLabel;
+  final String offLabel;
   final ValueChanged<bool> onChanged;
-  final String activeLabel;
-  final String inactiveLabel;
 
   const StatusToggle({
     super.key,
     required this.value,
+    required this.onLabel,
+    required this.offLabel,
     required this.onChanged,
-    this.activeLabel = 'Available',
-    this.inactiveLabel = 'Unavailable',
   });
 
   @override
   Widget build(BuildContext context) {
     final color = value ? AppColors.success : AppColors.error;
     return Container(
-      padding: const EdgeInsets.only(left: 12, right: 4),
+      height: 36,
+      padding: const EdgeInsets.only(left: 12, right: 2),
       decoration: BoxDecoration(
         color: value ? AppColors.successLight : AppColors.errorLight,
-        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withValues(alpha: 0.4)),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            value ? activeLabel : inactiveLabel,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(value ? onLabel : offLabel,
+              style: TextStyle(color: color, fontSize: 12)),
+          const SizedBox(width: 4),
           Transform.scale(
-            scale: 0.8,
+            scale: 0.75,
             child: Switch(
               value: value,
               onChanged: onChanged,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               thumbColor: const WidgetStatePropertyAll(Colors.white),
               trackColor: WidgetStatePropertyAll(color),
-              trackOutlineColor:
-                  const WidgetStatePropertyAll(Colors.transparent),
+              trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
             ),
           ),
         ],
