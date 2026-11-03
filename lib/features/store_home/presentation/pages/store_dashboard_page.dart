@@ -12,6 +12,7 @@ import '../../../order/presentation/pages/store_order_detail_page.dart';
 import '../../../order/presentation/pages/store_order_list_page.dart';
 import '../../../order/presentation/providers/order_provider.dart';
 import '../../../order/presentation/widgets/order_card.dart';
+import '../../../shop/presentation/pages/shop_list_page.dart';
 import '../../../shop/presentation/providers/shop_provider.dart';
 import '../../../vegetable/presentation/pages/vegetable_list_page.dart';
 import '../../../vegetable/presentation/providers/vegetable_provider.dart';
@@ -42,8 +43,12 @@ class _StoreDashboardPageState extends State<StoreDashboardPage> {
         body: IndexedStack(
           index: _index,
           children: [
-            _HomeTab(onViewAll: () => setState(() => _index = 2)),
+            _HomeTab(
+              onViewAll: () => setState(() => _index = 3),
+              onNavigate: (i) => setState(() => _index = i),
+            ),
             const VegetableListPage(),
+            const ShopListPage(showAppBar: false),
             const StoreOrderListPage(),
           ],
         ),
@@ -62,6 +67,10 @@ class _StoreDashboardPageState extends State<StoreDashboardPage> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.eco_outlined), activeIcon: Icon(Icons.eco), label: 'Vegetables'),
             BottomNavigationBarItem(
+                icon: Icon(Icons.storefront_outlined),
+                activeIcon: Icon(Icons.storefront),
+                label: 'Shops'),
+            BottomNavigationBarItem(
                 icon: Icon(Icons.shopping_bag_outlined),
                 activeIcon: Icon(Icons.shopping_bag),
                 label: 'Orders'),
@@ -72,12 +81,15 @@ class _StoreDashboardPageState extends State<StoreDashboardPage> {
 
 class _HomeTab extends StatelessWidget {
   final VoidCallback onViewAll;
-  const _HomeTab({required this.onViewAll});
+  final ValueChanged<int> onNavigate;
+  const _HomeTab({required this.onViewAll, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
     final name = context.watch<AuthProvider>().user?.name ?? 'Store';
     final orders = context.watch<OrderProvider>();
+    final vegs = context.watch<VegetableProvider>();
+    final shops = context.watch<ShopProvider>();
     final recent = orders.orders.take(5).toList();
 
     return Column(
@@ -120,7 +132,59 @@ class _HomeTab extends StatelessWidget {
                 const SizedBox(width: 10),
                 _StatCard('Completed', orders.completedCount, AppColors.statGreen),
               ]),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
+              Row(children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () => onNavigate(1),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceAlt,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.eco_outlined, color: AppColors.success, size: 24),
+                        const SizedBox(width: 10),
+                        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('${vegs.items.length} Vegetables',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                          Text('${vegs.available.length} available',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        ]),
+                      ]),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => onNavigate(2),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceAlt,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.storefront_outlined, color: AppColors.accent, size: 24),
+                        const SizedBox(width: 10),
+                        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('${shops.shops.length} Shops',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                          Text('${shops.shops.where((s) => s.isActive).length} active',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        ]),
+                      ]),
+                    ),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 18),
               Row(children: [
                 const Text('Orders', style: AppTextStyles.h2),
                 const Spacer(),

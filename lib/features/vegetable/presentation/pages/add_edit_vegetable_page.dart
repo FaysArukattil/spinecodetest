@@ -109,6 +109,29 @@ class _AddEditVegetablePageState extends State<AddEditVegetablePage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            Center(
+              child: Container(
+                width: 100,
+                height: 100,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.eco, size: 36, color: AppColors.brandGreen),
+                    SizedBox(height: 4),
+                    Text(
+                      'Photo',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             CustomTextField(
               controller: _sort,
               label: 'Sort Number *',

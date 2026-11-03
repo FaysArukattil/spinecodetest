@@ -22,22 +22,27 @@ class VegetableListPage extends StatefulWidget {
 
 class _VegetableListPageState extends State<VegetableListPage> {
   bool _showAvailable = true;
+  String _query = '';
 
   void _openForm([VegetableEntity? veg]) => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => AddEditVegetablePage(vegetable: veg)),
-      );
+    context,
+    MaterialPageRoute(builder: (_) => AddEditVegetablePage(vegetable: veg)),
+  );
 
   Future<void> _toggle(VegetableEntity v, bool makeAvailable) async {
     final p = context.read<VegetableProvider>();
     if (makeAvailable && v.stockQuantity <= 0) {
-      SnackbarHelper.error(context, 'Add stock to "${v.name}" before marking it available');
+      SnackbarHelper.error(
+        context,
+        'Add stock to "${v.name}" before marking it available',
+      );
       return;
     }
     final yes = await ConfirmDialog.show(
       context,
-      title: makeAvailable ? 'Available' : 'Unavailable',
-      message: 'Are you sure the vegetable is ${makeAvailable ? 'available' : 'unavailable'}?',
+      title: makeAvailable ? 'Mark Available' : 'Mark Out of Stock',
+      message:
+          'Are you sure "${v.name}" is ${makeAvailable ? 'available' : 'out of stock'}?',
       color: makeAvailable ? AppColors.success : AppColors.error,
     );
     if (!yes || !mounted) return;
@@ -64,19 +69,34 @@ class _VegetableListPageState extends State<VegetableListPage> {
   @override
   Widget build(BuildContext context) {
     final p = context.watch<VegetableProvider>();
-    final list = _showAvailable ? p.available : p.unavailable;
+    final q = _query.trim().toLowerCase();
+    final baseList = _showAvailable ? p.available : p.unavailable;
+    final list = q.isEmpty
+        ? baseList
+        : baseList.where((v) => v.name.toLowerCase().contains(q)).toList();
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: _Tabs(
                 availableCount: p.available.length,
                 unavailableCount: p.unavailable.length,
                 showAvailable: _showAvailable,
                 onChanged: (v) => setState(() => _showAvailable = v),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: TextField(
+                onChanged: (v) => setState(() => _query = v),
+                decoration: const InputDecoration(
+                  hintText: 'Search vegetables...',
+                  prefixIcon: Icon(Icons.search, size: 20),
+                  isDense: true,
+                ),
               ),
             ),
             Expanded(child: _body(p, list)),
@@ -100,7 +120,11 @@ class _VegetableListPageState extends State<VegetableListPage> {
     }
     if (list.isEmpty) {
       return EmptyState(
-        message: _showAvailable ? 'No available vegetables' : 'No unavailable vegetables',
+        message: _query.isNotEmpty
+            ? 'No vegetables match "$_query"'
+            : (_showAvailable
+                  ? 'No available vegetables'
+                  : 'No out of stock vegetables'),
         icon: Icons.eco_outlined,
       );
     }
@@ -133,32 +157,45 @@ class _Tabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(10),
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      children: [
+        _tab('Available $availableCount', showAvailable, () => onChanged(true)),
+        _tab(
+          'Out of Stock $unavailableCount',
+          !showAvailable,
+          () => onChanged(false),
         ),
-        child: Row(children: [
-          _tab('Available $availableCount', showAvailable, () => onChanged(true)),
-          _tab('Unavailable $unavailableCount', !showAvailable, () => onChanged(false)),
-        ]),
-      );
+      ],
+    ),
+  );
 
   Widget _tab(String label, bool selected, VoidCallback onTap) => Expanded(
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: selected ? Colors.white24 : Colors.transparent,
-              border: Border.all(color: selected ? Colors.white : Colors.transparent),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(label,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 34,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? Colors.white24 : Colors.transparent,
+          border: Border.all(
+            color: selected ? Colors.white : Colors.transparent,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
-      );
+      ),
+    ),
+  );
 }

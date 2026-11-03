@@ -19,12 +19,14 @@ class StoreOrderListPage extends StatefulWidget {
 }
 
 class _StoreOrderListPageState extends State<StoreOrderListPage> {
-  String _tab = AppConstants.orderPending;
+  static const _all = 'All';
+  late final List<String> _tabs = [_all, ...AppConstants.orderStatuses];
+  String _tab = _all;
 
   @override
   Widget build(BuildContext context) {
     final p = context.watch<OrderProvider>();
-    final list = p.byStatus(_tab);
+    final list = _tab == _all ? p.orders : p.byStatus(_tab);
 
     return Scaffold(
       body: SafeArea(
@@ -35,10 +37,10 @@ class _StoreOrderListPageState extends State<StoreOrderListPage> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                itemCount: AppConstants.orderStatuses.length,
+                itemCount: _tabs.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
-                  final s = AppConstants.orderStatuses[i];
+                  final s = _tabs[i];
                   final selected = s == _tab;
                   return GestureDetector(
                     onTap: () => setState(() => _tab = s),
@@ -74,7 +76,10 @@ class _StoreOrderListPageState extends State<StoreOrderListPage> {
     }
     if (list.isEmpty) {
       return EmptyState(
-          message: 'No ${_tab.toLowerCase()} orders', icon: Icons.shopping_bag_outlined);
+          message: _tab == _all
+              ? 'No orders yet'
+              : 'No ${_tab.toLowerCase()} orders',
+          icon: Icons.shopping_bag_outlined);
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -83,7 +88,7 @@ class _StoreOrderListPageState extends State<StoreOrderListPage> {
       itemBuilder: (_, i) => OrderCard(
         order: list[i],
         index: i + 1,
-        showStatus: false,
+        showStatus: _tab == _all,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => StoreOrderDetailPage(orderId: list[i].id)),
