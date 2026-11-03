@@ -24,4 +24,12 @@ class AppConstants {
     orderCompleted,
     orderCancelled,
   ];
+
+  static const staffRoles = ['Manager', 'Staff', 'Delivery', 'Cashier'];
+  static const staffPermissions = [
+    'Vegetables',
+    'Orders',
+    'Shops',
+    'Reports',
+  ];
 }

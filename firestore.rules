@@ -84,6 +84,12 @@ service cloud.firestore {
       // No user is permitted to delete an order (audit trail preservation).
       allow delete: if false;
     }
+
+    // 5. Staff collection
+    match /staff/{staffId} {
+      // Store admin can manage staff
+      allow read, write: if isStore();
+    }
   }
 }
 

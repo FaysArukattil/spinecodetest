@@ -5,6 +5,7 @@ class FirestoreKeys {
   static const vegetables = 'vegetables';
   static const shops = 'shops';
   static const orders = 'orders';
+  static const staff = 'staff';
 
   // common
   static const createdAt = 'createdAt';
