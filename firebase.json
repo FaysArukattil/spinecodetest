@@ -1,1 +1,24 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"spinecodetest","appId":"1:766455134526:android:ce77013fb2d2d6d7fbd46f","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"spinecodetest","configurations":{"android":"1:766455134526:android:ce77013fb2d2d6d7fbd46f"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "spinecodetest",
+          "appId": "1:766455134526:android:ce77013fb2d2d6d7fbd46f",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    },
+    "dart": {
+      "lib/firebase_options.dart": {
+        "projectId": "spinecodetest",
+        "configurations": {
+          "android": "1:766455134526:android:ce77013fb2d2d6d7fbd46f"
+        }
+      }
+    }
+  }
+}
