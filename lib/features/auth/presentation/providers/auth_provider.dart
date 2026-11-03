@@ -17,7 +17,7 @@ class AuthProvider extends ChangeNotifier {
     required LoginUseCase login,
     required LogoutUseCase logout,
     required GetSessionUseCase getSession,
-  }) : _login = login,
+  }) : this._login = login,
        _logout = logout,
        _getSession = getSession;
 
