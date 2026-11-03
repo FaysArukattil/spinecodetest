@@ -35,6 +35,9 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     _startTimer();
     for (int i = 0; i < 6; i++) {
       final index = i;
+      _focusNodes[index].addListener(() {
+        if (mounted) setState(() {});
+      });
       _focusNodes[index].onKeyEvent = (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.backspace &&
@@ -139,9 +142,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
             final availableWidth = constraints.maxWidth;
             final isCompactHeight = constraints.maxHeight < 560;
 
-            // Responsive circle diameter: 44px default, slightly smaller if very narrow screen
-            final circleSize = availableWidth < 360 ? 38.0 : 44.0;
-            final circleSpacing = availableWidth < 360 ? 3.0 : 5.0;
+            // Responsive circle sizing: prominent, high-contrast circular outline
+            final double circleSize = ((availableWidth - 80) / 6).clamp(44.0, 50.0);
+            final double circleSpacing =
+                ((availableWidth - (circleSize * 6) - 48) / 5).clamp(4.0, 8.0);
 
             return SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
@@ -156,7 +160,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(height: isCompactHeight ? 12 : 28),
+                    SizedBox(height: isCompactHeight ? 12 : 24),
 
                     // Title matching Figma
                     const Text(
@@ -165,7 +169,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF221F1F),
+                        color: Color(0xFF1E1E1E),
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -193,7 +197,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                           border: Border.all(color: AppColors.border),
                         ),
                         child: const Text(
-                          'Demo Mode: Enter code 123456',
+                          'Test Mode: Enter code 123456',
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary,
@@ -205,7 +209,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
                     SizedBox(height: isCompactHeight ? 24 : 36),
 
-                    // 6 Circular OTP input circles matching Figma
+                    // 6 Circular OTP input circles matching Figma with bold, crisp borders
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
@@ -289,54 +293,82 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
   Widget _circlePinBox(int index, double size) {
     final hasFocus = _focusNodes[index].hasFocus;
-    final hasValue = _controllers[index].text.isNotEmpty;
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(
-          color: (hasFocus || hasValue)
-              ? const Color(0xFF2B2726)
-              : const Color(0xFF666666),
-          width: hasFocus ? 1.5 : 1.0,
+    return GestureDetector(
+      onTap: () => _focusNodes[index].requestFocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+          border: Border.all(
+            color: hasFocus ? const Color(0xFF2B2726) : const Color(0xFF1E1E1E),
+            width: hasFocus ? 2.4 : 1.8,
+          ),
+          boxShadow: hasFocus
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
-      ),
-      alignment: Alignment.center,
-      child: TextField(
-        controller: _controllers[index],
-        focusNode: _focusNodes[index],
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        textAlignVertical: TextAlignVertical.center,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF221F1F),
+        alignment: Alignment.center,
+        child: Center(
+          child: SizedBox(
+            width: size - 6,
+            height: size - 6,
+            child: TextField(
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              showCursor: false,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E1E1E),
+                height: 1.0,
+              ),
+              maxLength: 1,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                counterText: '',
+                contentPadding: EdgeInsets.zero,
+                isDense: true,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+              onChanged: (val) {
+                setState(() {});
+                if (val.length > 1) {
+                  final digits = val.replaceAll(RegExp(r'\D'), '');
+                  for (int k = 0; k < digits.length && (index + k) < 6; k++) {
+                    _controllers[index + k].text = digits[k];
+                  }
+                  final next = (index + digits.length).clamp(0, 5);
+                  _focusNodes[next].requestFocus();
+                  setState(() {});
+                  if (_otp.length == 6) _verify();
+                  return;
+                }
+                if (val.isNotEmpty && index < 5) {
+                  _focusNodes[index + 1].requestFocus();
+                } else if (val.isEmpty && index > 0) {
+                  _focusNodes[index - 1].requestFocus();
+                }
+                if (_otp.length == 6) {
+                  _verify();
+                }
+              },
+            ),
+          ),
         ),
-        maxLength: 1,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        decoration: const InputDecoration(
-          counterText: '',
-          contentPadding: EdgeInsets.zero,
-          isDense: true,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-        ),
-        onChanged: (val) {
-          setState(() {});
-          if (val.isNotEmpty && index < 5) {
-            _focusNodes[index + 1].requestFocus();
-          } else if (val.isEmpty && index > 0) {
-            _focusNodes[index - 1].requestFocus();
-          }
-          if (_otp.length == 6) {
-            _verify();
-          }
-        },
       ),
     );
   }
