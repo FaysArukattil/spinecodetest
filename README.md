@@ -15,7 +15,7 @@ Designed strictly in accordance with the **Figma Design Specifications**, **Clea
 
 ## 📸 Modules & Features
 
-### 🏢 1. Store Module (Admin Panel) — Charcoal Theme (`#2B2726`)
+### 🏢 1. Store Module (Admin Panel) 
 - **Dashboard & Metrics:** Real-time summary tiles showing *Pending Orders*, *Total Orders*, *Completed Orders*, and fast navigation to vegetables, shops, and staff.
 - **Vegetable Catalog Management:**
   - Full CRUD operations with instant Firestore synchronization.
@@ -40,7 +40,7 @@ Designed strictly in accordance with the **Figma Design Specifications**, **Clea
 
 ---
 
-### 🛒 2. Shop Module (Customer Panel) — Indigo Theme (`#5B72F5`)
+### 🛒 2. Shop Module (Customer Panel) 
 - **Dual Authentication Modes:**
   - **Email + Password Login:** Secure login with automatic role detection and blocked status check.
   - **Mobile Phone OTP Login:** Clean 6-circle PIN entry matching Figma. Only authorized active shops can log in; unauthorized numbers are rejected before SMS dispatch.
