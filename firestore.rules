@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isStore() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'store';
+    }
+
+    function isShop() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'shop';
+    }
+
+    function isActiveShop() {
+      return isShop() &&
+        exists(/databases/$(database)/documents/shops/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/shops/$(request.auth.uid)).data.status == 'Active';
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      // Store can read/write any user. Shop can only read own user profile.
+      allow read: if isStore() || (isAuthenticated() && request.auth.uid == userId);
+      allow create, update, delete: if isStore();
+    }
+
+    // 2. Shops collection
+    match /shops/{shopId} {
+      // Store can read/write all shops. Active shop can read its own document.
+      allow read: if isStore() || (isAuthenticated() && request.auth.uid == shopId);
+      allow create, update, delete: if isStore();
+    }
+
+    // 3. Vegetables collection
+    match /vegetables/{vegId} {
+      // Store and active shops can read vegetables. Blocked shops cannot.
+      allow read: if isStore() || isActiveShop();
+
+      // Store can add, edit, or delete any vegetable.
+      allow create, delete: if isStore();
+
+      // Store can update anything.
+      // Active shops can ONLY update stockQuantity and status during order transactions.
+      allow update: if isStore() || (
+        isActiveShop() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stockQuantity', 'status']) &&
+        request.resource.data.stockQuantity >= 0 &&
+        request.resource.data.name == resource.data.name &&
+        request.resource.data.price == resource.data.price &&
+        request.resource.data.unit == resource.data.unit
+      );
+    }
+
+    // 4. Orders collection
+    match /orders/{orderId} {
+      // Store can read all orders. Active shops can only read their own orders.
+      allow read: if isStore() || (isActiveShop() && resource.data.shopId == request.auth.uid);
+
+      // Active shop can place an order for itself with Pending status.
+      allow create: if isActiveShop() &&
+        request.resource.data.shopId == request.auth.uid &&
+        request.resource.data.status == 'Pending' &&
+        request.resource.data.totalAmount > 0;
+
+      // Status updates:
+      // Store can transition Pending -> Approved/Rejected/Cancelled, and Approved -> Completed.
+      // Shop can ONLY cancel its own Pending order (Pending -> Cancelled).
+      allow update: if isStore() || (
+        isActiveShop() &&
+        resource.data.shopId == request.auth.uid &&
+        resource.data.status == 'Pending' &&
+        request.resource.data.status == 'Cancelled' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+      );
+
+      // No user is permitted to delete an order (audit trail preservation).
+      allow delete: if false;
+    }
+  }
+}
