@@ -79,7 +79,7 @@ class AuthRemoteDataSource {
     if (tenDigit.isNotEmpty) {
       final snap = await _db
           .collection(FirestoreKeys.shops)
-          .where(FirestoreKeys.phone, isEqualTo: tenDigit)
+          .where(FirestoreKeys.phone, whereIn: [tenDigit, '+91$tenDigit', '91$tenDigit'])
           .limit(1)
           .get();
       if (snap.docs.isNotEmpty) {
@@ -113,7 +113,7 @@ class AuthRemoteDataSource {
     try {
       final snap = await _db
           .collection(FirestoreKeys.shops)
-          .where(FirestoreKeys.phone, isEqualTo: tenDigit)
+          .where(FirestoreKeys.phone, whereIn: [tenDigit, '+91$tenDigit', '91$tenDigit'])
           .limit(1)
           .get();
       if (snap.docs.isEmpty) {
@@ -129,9 +129,9 @@ class AuthRemoteDataSource {
       }
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
-        // If Firestore rules in Firebase Console haven't been published yet,
-        // permit SMS OTP dispatch to proceed so verification can occur.
-        return;
+        throw const AppException(
+          "Permission denied on shops collection. In Firebase Console > Firestore Database > Rules, set: allow read: if true; for match /shops/{shopId}",
+        );
       }
       rethrow;
     }
@@ -145,7 +145,7 @@ class AuthRemoteDataSource {
     if (tenDigit.isNotEmpty) {
       final snap = await _db
           .collection(FirestoreKeys.shops)
-          .where(FirestoreKeys.phone, isEqualTo: tenDigit)
+          .where(FirestoreKeys.phone, whereIn: [tenDigit, '+91$tenDigit', '91$tenDigit'])
           .limit(1)
           .get();
       if (snap.docs.isNotEmpty) {

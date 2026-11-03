@@ -77,23 +77,29 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _openOtpScreen(BuildContext context, AuthProvider auth, String? verificationId) {
+  void _openOtpScreen(
+    BuildContext context,
+    AuthProvider auth,
+    String? verificationId,
+  ) {
     final nav = Navigator.of(context);
-    nav.push<bool>(
-      MaterialPageRoute(
-        builder: (_) => OtpVerificationPage(
-          phone: _phone.text.trim(),
-          verificationId: verificationId,
-        ),
-      ),
-    ).then((verified) {
-      if (verified == true && mounted && auth.user != null) {
-        nav.pushNamedAndRemoveUntil(
-          AppRoutes.homeFor(auth.user!),
-          (_) => false,
-        );
-      }
-    });
+    nav
+        .push<bool>(
+          MaterialPageRoute(
+            builder: (_) => OtpVerificationPage(
+              phone: _phone.text.trim(),
+              verificationId: verificationId,
+            ),
+          ),
+        )
+        .then((verified) {
+          if (verified == true && mounted && auth.user != null) {
+            nav.pushNamedAndRemoveUntil(
+              AppRoutes.homeFor(auth.user!),
+              (_) => false,
+            );
+          }
+        });
   }
 
   @override
@@ -106,11 +112,18 @@ class _LoginPageState extends State<LoginPage> {
           SafeArea(
             child: LayoutBuilder(
               builder: (context, c) {
-                final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+                final keyboardOpen =
+                    MediaQuery.viewInsetsOf(context).bottom > 0;
                 final isLandscape = c.maxWidth > c.maxHeight;
-                final topLogoPadding = keyboardOpen || isLandscape ? 16.0 : (c.maxHeight < 700 ? 32.0 : 64.0);
-                final formTopPadding = keyboardOpen || isLandscape ? 12.0 : 28.0;
-                final horizontalPadding = c.maxWidth > 550 ? (c.maxWidth - 440) / 2 : 24.0;
+                final topLogoPadding = keyboardOpen || isLandscape
+                    ? 16.0
+                    : (c.maxHeight < 700 ? 32.0 : 64.0);
+                final formTopPadding = keyboardOpen || isLandscape
+                    ? 12.0
+                    : 28.0;
+                final horizontalPadding = c.maxWidth > 550
+                    ? (c.maxWidth - 440) / 2
+                    : 24.0;
 
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
@@ -131,7 +144,10 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const Spacer(),
                           Padding(
-                            padding: EdgeInsets.only(bottom: 24, top: formTopPadding),
+                            padding: EdgeInsets.only(
+                              bottom: 24,
+                              top: formTopPadding,
+                            ),
                             child: Form(
                               key: _formKey,
                               child: Column(
@@ -145,9 +161,13 @@ class _LoginPageState extends State<LoginPage> {
                                         color: Colors.white,
                                       ),
                                       children: [
-                                        const TextSpan(text: 'Enter your registered\n'),
+                                        const TextSpan(
+                                          text: 'Enter your registered\n',
+                                        ),
                                         TextSpan(
-                                          text: _usePhoneOtp ? 'mobile number' : 'email',
+                                          text: _usePhoneOtp
+                                              ? 'mobile number'
+                                              : 'email',
                                           style: const TextStyle(
                                             color: AppColors.accentGreen,
                                           ),
@@ -203,7 +223,7 @@ class _LoginPageState extends State<LoginPage> {
                                       child: Text(
                                         _usePhoneOtp
                                             ? 'Or login with Email & Password'
-                                            : 'Or login with Mobile OTP (Figma)',
+                                            : 'Or login with Mobile OTP',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
