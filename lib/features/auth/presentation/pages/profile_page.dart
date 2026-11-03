@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/theme/shop_theme.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
+import '../../../staff/presentation/pages/staff_list_page.dart';
 import '../providers/auth_provider.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -36,13 +38,16 @@ class ProfilePage extends StatelessWidget {
         .map((e) => e[0].toUpperCase())
         .join();
 
+    final isShop = user?.role == 'shop';
+    final headerColor = isShop ? ShopColors.primary : AppColors.primary;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
           Container(
             width: double.infinity,
-            color: AppColors.primary,
+            color: headerColor,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: SafeArea(
               bottom: false,
@@ -58,13 +63,13 @@ class ProfilePage extends StatelessWidget {
                           child: InkWell(
                             onTap: () => Navigator.pop(context),
                             customBorder: const CircleBorder(),
-                            child: const CircleAvatar(
+                            child: CircleAvatar(
                               radius: 16,
                               backgroundColor: Colors.white,
                               child: Icon(
                                 Icons.arrow_back,
                                 size: 18,
-                                color: AppColors.primary,
+                                color: headerColor,
                               ),
                             ),
                           ),
@@ -145,7 +150,7 @@ class ProfilePage extends StatelessWidget {
                 const SizedBox(height: 16),
                 _InfoTile(
                   icon: Icons.person_outline,
-                  label: 'Name',
+                  label: isShop ? 'Shop Owner Name' : 'Name',
                   value: name,
                 ),
                 const SizedBox(height: 12),
@@ -154,6 +159,26 @@ class ProfilePage extends StatelessWidget {
                   label: 'Registered Email',
                   value: user?.email ?? '-',
                 ),
+                const SizedBox(height: 12),
+                _InfoTile(
+                  icon: Icons.badge_outlined,
+                  label: 'Account Role',
+                  value: isShop ? 'Shop Customer' : 'Store Admin',
+                ),
+                if (isShop) ...[
+                  const SizedBox(height: 12),
+                  _InfoTile(
+                    icon: Icons.people_outline,
+                    label: 'Staff Management',
+                    value: 'View & Manage Staff',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StaffListPage(isShop: true),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 28),
                 Center(
                   child: TextButton.icon(
@@ -186,41 +211,49 @@ class _InfoTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final VoidCallback? onTap;
   const _InfoTile({
     required this.icon,
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: AppColors.surfaceAlt,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Row(
-      children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: Colors.white,
-          child: Icon(icon, size: 18, color: AppColors.textPrimary),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: AppTextStyles.caption),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(12),
+    child: Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.white,
+            child: Icon(icon, size: 18, color: AppColors.textPrimary),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTextStyles.caption),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          if (onTap != null)
+            const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+        ],
+      ),
     ),
   );
 }

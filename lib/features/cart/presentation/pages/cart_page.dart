@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/shop_theme.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/snackbar_helper.dart';
-import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../order/presentation/pages/order_summary_page.dart';
 import '../../../order/presentation/providers/order_provider.dart';
 import '../../../vegetable/domain/entities/vegetable_entity.dart';
 import '../../../vegetable/presentation/providers/vegetable_provider.dart';
@@ -40,75 +38,6 @@ class CartPage extends StatelessWidget {
       }
     }
     return null;
-  }
-
-  Future<void> _place(BuildContext context) async {
-    final user = context.read<AuthProvider>().user;
-    final cart = context.read<CartProvider>();
-    final orders = context.read<OrderProvider>();
-    final vegs = context.read<VegetableProvider>().items;
-    if (user == null) return;
-
-    if (cart.isEmpty) {
-      SnackbarHelper.error(context, 'Your cart is empty.');
-      return;
-    }
-    final problem = _problem(cart.items, vegs);
-    if (problem != null) {
-      SnackbarHelper.error(context, problem);
-      return;
-    }
-
-    final yes = await ConfirmDialog.show(
-      context,
-      title: 'Place Order',
-      message:
-          'Place an order for ${cart.itemCount} item(s), total ${Formatters.money(cart.totalAmount)}?',
-      confirmLabel: 'Place Order',
-      color: ShopColors.primary,
-    );
-    if (!yes || !context.mounted) return;
-
-    final order = cart.buildOrder(shopId: user.id, shopName: user.name);
-    final err = await orders.placeOrder(order);
-    if (!context.mounted) return;
-    if (err != null) {
-      SnackbarHelper.error(context, err);
-      return;
-    }
-
-    cart.clear();
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.check_circle_outline,
-                size: 48, color: ShopColors.primary),
-            const SizedBox(height: 12),
-            Text('Order Placed Successfully!',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.h2.copyWith(color: ShopColors.primary)),
-            const SizedBox(height: 6),
-            const Text(
-              'Your order has been received and will be processed soon.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.caption,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Done'),
-            ),
-          ]),
-        ),
-      ),
-    );
-    if (!context.mounted) return;
-    Navigator.pop(context);
   }
 
   @override
@@ -170,7 +99,21 @@ class CartPage extends StatelessWidget {
                 child: CustomButton(
                   label: 'Place Order',
                   isLoading: busy,
-                  onPressed: items.isEmpty ? null : () => _place(context),
+                  onPressed: items.isEmpty
+                      ? null
+                      : () {
+                          final problem = _problem(items, vegs);
+                          if (problem != null) {
+                            SnackbarHelper.error(context, problem);
+                            return;
+                          }
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const OrderSummaryPage(),
+                            ),
+                          );
+                        },
                 ),
               ),
             ]),

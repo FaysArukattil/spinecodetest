@@ -43,12 +43,27 @@ class OrderCard extends StatelessWidget {
             children: [
               Row(children: [
                 Expanded(
-                  child: Text(
-                    '$index. ${showShopName ? order.shopName : order.displayId}',
-                    style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$index. ${showShopName ? order.shopName : order.displayId}',
+                        style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      if (!showShopName)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            '${order.items.length} items • ${DateFormatter.compact(order.createdAt)}',
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 if (showStatus) StatusChip(order.status),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
               ]),
               const SizedBox(height: 6),
               for (var i = 0; i < shown.length; i++)
