@@ -1,6 +1,6 @@
 class AppConstants {
   AppConstants._();
-  static const appName = 'Vegetable Ordering';
+  static const appName = 'Plantlets';
   static const roleStore = 'store';
   static const roleShop = 'shop';
 

@@ -136,7 +136,7 @@ class _Background extends StatelessWidget {
   Widget build(BuildContext context) => Image.asset(
     'assets/images/login_bg.png',
     fit: BoxFit.cover,
-    errorBuilder: (_, _, _) => const DecoratedBox(
+    errorBuilder: (context, error, stackTrace) => const DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,

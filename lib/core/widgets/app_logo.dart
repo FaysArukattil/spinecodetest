@@ -11,7 +11,7 @@ class AppLogo extends StatelessWidget {
   Widget build(BuildContext context) => Image.asset(
     'assets/images/logo.png',
     width: width,
-    errorBuilder: (_, _, _) => Text(
+    errorBuilder: (context, error, stackTrace) => Text(
       AppConstants.appName,
       style: const TextStyle(
         fontSize: 32,

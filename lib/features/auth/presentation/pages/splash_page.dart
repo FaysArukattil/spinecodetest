@@ -33,6 +33,15 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: AppLogo()));
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: Colors.white,
+        body: SizedBox.expand(
+          child: Image.asset(
+            'assets/images/splash.png',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+                const Center(child: AppLogo()),
+          ),
+        ),
+      );
 }
