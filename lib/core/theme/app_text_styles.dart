@@ -4,7 +4,6 @@ import 'app_colors.dart';
 
 class AppTextStyles {
   AppTextStyles._();
-  // TODO: set fontFamily from Figma in app_theme.dart
   static const h1 = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w700,

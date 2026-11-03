@@ -36,7 +36,7 @@ class _StoreOrderListPageState extends State<StoreOrderListPage> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 itemCount: AppConstants.orderStatuses.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
                   final s = AppConstants.orderStatuses[i];
                   final selected = s == _tab;
@@ -79,7 +79,7 @@ class _StoreOrderListPageState extends State<StoreOrderListPage> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: list.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (_, i) => OrderCard(
         order: list[i],
         index: i + 1,

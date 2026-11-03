@@ -52,7 +52,7 @@ class OrderProvider extends ChangeNotifier {
   }
 
   /// Store: listen to every order.
-  void startAll({bool force = false}) => _start('all', _getOrders, force);
+  void startAll({bool force = false}) => _start('all', _getOrders.call, force);
 
   /// Shop: listen only to this shop's orders.
   void startForShop(String shopId, {bool force = false}) =>

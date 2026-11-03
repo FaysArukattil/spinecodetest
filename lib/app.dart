@@ -13,6 +13,7 @@ import 'features/auth/domain/usecases/get_session_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/cart/presentation/providers/cart_provider.dart';
 import 'features/order/data/datasources/order_remote_datasource.dart';
 import 'features/order/data/repositories/order_repository_impl.dart';
 import 'features/order/domain/usecases/cancel_order_usecase.dart';
@@ -85,6 +86,14 @@ class MyApp extends StatelessWidget {
           ),
           update: (_, auth, previous) {
             if (auth.status != AuthStatus.authenticated) previous!.stop();
+            return previous!;
+          },
+        ),
+        // The cart is emptied on logout so the next user starts clean.
+        ChangeNotifierProxyProvider<AuthProvider, CartProvider>(
+          create: (_) => CartProvider(),
+          update: (_, auth, previous) {
+            if (auth.status != AuthStatus.authenticated) previous!.reset();
             return previous!;
           },
         ),
