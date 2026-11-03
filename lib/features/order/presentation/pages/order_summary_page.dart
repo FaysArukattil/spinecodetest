@@ -65,41 +65,44 @@ class OrderSummaryPage extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 68,
-                height: 68,
-                decoration: const BoxDecoration(
-                  color: AppColors.successLight,
-                  shape: BoxShape.circle,
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: const BoxDecoration(
+                    color: AppColors.successLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, size: 40, color: AppColors.success),
                 ),
-                child: const Icon(Icons.check, size: 40, color: AppColors.success),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Order Placed Successfully!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Your order has been submitted to Fresh Vegetables Store for approval.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: CustomButton(
-                  label: 'Done',
-                  onPressed: () {
-                    Navigator.pop(ctx); // close dialog
-                  },
+                const SizedBox(height: 16),
+                const Text(
+                  'Order Placed Successfully!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                const Text(
+                  'Your order has been submitted to Fresh Vegetables Store for approval.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: CustomButton(
+                    label: 'Done',
+                    onPressed: () {
+                      Navigator.pop(ctx); // close dialog
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

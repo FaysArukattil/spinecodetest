@@ -250,9 +250,18 @@ class _StatCard extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
             const SizedBox(height: 4),
-            Text('$value',
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '$value',
                 style: const TextStyle(
-                    color: Colors.white, fontSize: 26, fontWeight: FontWeight.w700)),
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
           ]),
         ),
       );

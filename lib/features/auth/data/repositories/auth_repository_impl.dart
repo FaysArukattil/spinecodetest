@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -46,5 +48,29 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout() async {
     await remote.logout();
     await local.clear(); // clears all saved session data
+  }
+
+  @override
+  Future<void> verifyPhoneNumber({
+    required String phone,
+    required void Function(String verificationId, int? resendToken) onCodeSent,
+    required void Function(String error) onError,
+    required void Function(PhoneAuthCredential credential) onAutoVerified,
+  }) =>
+      remote.verifyPhoneNumber(
+        phone: phone,
+        onCodeSent: onCodeSent,
+        onError: onError,
+        onAutoVerified: onAutoVerified,
+      );
+
+  @override
+  Future<UserEntity> loginWithPhone(String verificationId, String smsCode) async {
+    final user = await remote.signInWithPhoneCode(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    await local.saveSession(user);
+    return user;
   }
 }

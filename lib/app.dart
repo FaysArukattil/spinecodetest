@@ -11,7 +11,9 @@ import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/get_session_usecase.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
+import 'features/auth/domain/usecases/login_with_phone_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
+import 'features/auth/domain/usecases/verify_phone_usecase.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/cart/presentation/providers/cart_provider.dart';
 import 'features/order/data/datasources/order_remote_datasource.dart';
@@ -69,6 +71,8 @@ class MyApp extends StatelessWidget {
             login: LoginUseCase(authRepo),
             logout: LogoutUseCase(authRepo),
             getSession: GetSessionUseCase(authRepo),
+            verifyPhone: VerifyPhoneUseCase(authRepo),
+            loginWithPhone: LoginWithPhoneUseCase(authRepo),
           ), // session is checked by SplashPage
         ),
 

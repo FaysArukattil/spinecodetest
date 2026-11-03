@@ -37,6 +37,54 @@ class AuthRemoteDataSource {
 
   Future<void> logout() => _auth.signOut();
 
+  /// Starts Firebase Phone Number verification.
+  Future<void> verifyPhoneNumber({
+    required String phone,
+    required void Function(String verificationId, int? resendToken) onCodeSent,
+    required void Function(String error) onError,
+    required void Function(PhoneAuthCredential credential) onAutoVerified,
+  }) async {
+    final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
+    final formatted = phone.startsWith('+') ? phone : '+91$cleanPhone';
+    await _auth.verifyPhoneNumber(
+      phoneNumber: formatted,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: onAutoVerified,
+      verificationFailed: (FirebaseAuthException e) {
+        onError(e.message ?? 'Verification failed (${e.code})');
+      },
+      codeSent: (verificationId, resendToken) {
+        onCodeSent(verificationId, resendToken);
+      },
+      codeAutoRetrievalTimeout: (verificationId) {},
+    );
+  }
+
+  /// Completes Phone Auth sign-in using verificationId and SMS code.
+  Future<UserModel> signInWithPhoneCode({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    final cred = await _auth.signInWithCredential(credential);
+    final uid = cred.user!.uid;
+
+    final doc = await _db.collection(FirestoreKeys.users).doc(uid).get();
+    if (doc.exists) {
+      return _loadUser(uid);
+    }
+
+    return UserModel(
+      id: uid,
+      email: cred.user?.phoneNumber ?? 'phone@plantlets.com',
+      name: 'Mobile User',
+      role: AppConstants.roleStore,
+    );
+  }
+
   /// Loads the user profile and enforces: valid role + shop must be Active.
   Future<UserModel> _loadUser(String uid) async {
     final doc = await _db.collection(FirestoreKeys.users).doc(uid).get();

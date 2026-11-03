@@ -38,16 +38,43 @@ class _LoginPageState extends State<LoginPage> {
     FocusScope.of(context).unfocus();
 
     if (_usePhoneOtp) {
-      final verified = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OtpVerificationPage(phone: _phone.text.trim()),
-        ),
+      final auth = context.read<AuthProvider>();
+      await auth.sendPhoneOtp(
+        phone: _phone.text.trim(),
+        onCodeSent: (verificationId, resendToken) {
+          if (!mounted) return;
+          Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationPage(
+                phone: _phone.text.trim(),
+                verificationId: verificationId,
+              ),
+            ),
+          ).then((verified) {
+            if (verified == true && mounted && auth.user != null) {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.homeFor(auth.user!),
+                (_) => false,
+              );
+            }
+          });
+        },
+        onError: (err) {
+          if (!mounted) return;
+          SnackbarHelper.error(context, err);
+          // Still permit testing via simulated flow
+          Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationPage(
+                phone: _phone.text.trim(),
+              ),
+            ),
+          );
+        },
       );
-      if (verified == true && mounted) {
-        // Auto sign in as store demo or prompt email
-        SnackbarHelper.success(context, 'Signed in via mobile verification');
-      }
       return;
     }
 
@@ -74,108 +101,123 @@ class _LoginPageState extends State<LoginPage> {
           const Positioned.fill(child: _Background()),
           SafeArea(
             child: LayoutBuilder(
-              builder: (context, c) => SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: c.maxHeight),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 80),
-                        child: Center(child: AppLogo()),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 32, top: 40),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text.rich(
-                                TextSpan(
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                  children: [
-                                    const TextSpan(text: 'Enter your registered\n'),
+              builder: (context, c) {
+                final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+                final isLandscape = c.maxWidth > c.maxHeight;
+                final topLogoPadding = keyboardOpen || isLandscape ? 16.0 : (c.maxHeight < 700 ? 32.0 : 64.0);
+                final formTopPadding = keyboardOpen || isLandscape ? 12.0 : 28.0;
+                final horizontalPadding = c.maxWidth > 550 ? (c.maxWidth - 440) / 2 : 24.0;
+
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: c.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(top: topLogoPadding),
+                            child: Center(
+                              child: AppLogo(
+                                height: (keyboardOpen || isLandscape) ? 36 : 48,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 24, top: formTopPadding),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text.rich(
                                     TextSpan(
-                                      text: _usePhoneOtp ? 'mobile number' : 'email',
                                       style: const TextStyle(
-                                        color: AppColors.accentGreen,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                      children: [
+                                        const TextSpan(text: 'Enter your registered\n'),
+                                        TextSpan(
+                                          text: _usePhoneOtp ? 'mobile number' : 'email',
+                                          style: const TextStyle(
+                                            color: AppColors.accentGreen,
+                                          ),
+                                        ),
+                                        const TextSpan(text: ' to continue'),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+                                  if (_usePhoneOtp) ...[
+                                    CustomTextField(
+                                      controller: _phone,
+                                      label: 'Mobile Number',
+                                      hint: 'Enter 10-digit mobile number',
+                                      keyboardType: TextInputType.phone,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(10),
+                                      ],
+                                      validator: Validators.phone,
+                                    ),
+                                  ] else ...[
+                                    CustomTextField(
+                                      controller: _email,
+                                      label: 'Email',
+                                      hint: 'Email',
+                                      keyboardType: TextInputType.emailAddress,
+                                      validator: Validators.email,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    CustomTextField(
+                                      controller: _password,
+                                      label: 'Password',
+                                      hint: 'Password',
+                                      isPassword: true,
+                                      validator: Validators.password,
+                                    ),
+                                  ],
+                                  const SizedBox(height: 18),
+                                  CustomButton(
+                                    label: _usePhoneOtp ? 'Send OTP' : 'Login',
+                                    isLoading: loading,
+                                    onPressed: _submit,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Center(
+                                    child: TextButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _usePhoneOtp = !_usePhoneOtp;
+                                        });
+                                      },
+                                      child: Text(
+                                        _usePhoneOtp
+                                            ? 'Or login with Email & Password'
+                                            : 'Or login with Mobile OTP (Figma)',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          decoration: TextDecoration.underline,
+                                        ),
                                       ),
                                     ),
-                                    const TextSpan(text: ' to continue'),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              if (_usePhoneOtp) ...[
-                                CustomTextField(
-                                  controller: _phone,
-                                  label: 'Mobile Number',
-                                  hint: 'Enter 10-digit mobile number',
-                                  keyboardType: TextInputType.phone,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(10),
-                                  ],
-                                  validator: Validators.phone,
-                                ),
-                              ] else ...[
-                                CustomTextField(
-                                  controller: _email,
-                                  label: 'Email',
-                                  hint: 'Email',
-                                  keyboardType: TextInputType.emailAddress,
-                                  validator: Validators.email,
-                                ),
-                                const SizedBox(height: 14),
-                                CustomTextField(
-                                  controller: _password,
-                                  label: 'Password',
-                                  hint: 'Password',
-                                  isPassword: true,
-                                  validator: Validators.password,
-                                ),
-                              ],
-                              const SizedBox(height: 20),
-                              CustomButton(
-                                label: _usePhoneOtp ? 'Send OTP' : 'Login',
-                                isLoading: loading,
-                                onPressed: _submit,
-                              ),
-                              const SizedBox(height: 14),
-                              Center(
-                                child: TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _usePhoneOtp = !_usePhoneOtp;
-                                    });
-                                  },
-                                  child: Text(
-                                    _usePhoneOtp
-                                        ? 'Or login with Email & Password'
-                                        : 'Or login with Mobile OTP (Figma)',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      decoration: TextDecoration.underline,
-                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],

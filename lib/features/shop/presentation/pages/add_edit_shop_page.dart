@@ -88,7 +88,8 @@ class _AddEditShopPageState extends State<AddEditShopPage> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             CustomTextField(
               controller: _name,

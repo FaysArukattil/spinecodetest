@@ -5,7 +5,9 @@ import '../../../../core/errors/failures.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/get_session_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/login_with_phone_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/verify_phone_usecase.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
@@ -13,14 +15,20 @@ class AuthProvider extends ChangeNotifier {
   final LoginUseCase _login;
   final LogoutUseCase _logout;
   final GetSessionUseCase _getSession;
+  final VerifyPhoneUseCase _verifyPhone;
+  final LoginWithPhoneUseCase _loginWithPhone;
 
   AuthProvider({
     required LoginUseCase login,
     required LogoutUseCase logout,
     required GetSessionUseCase getSession,
+    required VerifyPhoneUseCase verifyPhone,
+    required LoginWithPhoneUseCase loginWithPhone,
   }) : _login = login,
        _logout = logout,
-       _getSession = getSession;
+       _getSession = getSession,
+       _verifyPhone = verifyPhone,
+       _loginWithPhone = loginWithPhone;
 
   AuthStatus _status = AuthStatus.unknown;
   UserEntity? _user;
@@ -69,6 +77,62 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     _status = AuthStatus.unauthenticated;
     notifyListeners();
+  }
+
+  Future<void> sendPhoneOtp({
+    required String phone,
+    required void Function(String verificationId, int? resendToken) onCodeSent,
+    required void Function(String error) onError,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await _verifyPhone(
+        phone: phone,
+        onCodeSent: (id, token) {
+          _isLoading = false;
+          notifyListeners();
+          onCodeSent(id, token);
+        },
+        onError: (err) {
+          _isLoading = false;
+          _error = err;
+          notifyListeners();
+          onError(err);
+        },
+        onAutoVerified: (credential) async {
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _isLoading = false;
+      _error = Failure.from(e).message;
+      notifyListeners();
+      onError(_error!);
+    }
+  }
+
+  Future<bool> verifyOtpAndLogin({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    if (_isLoading) return false;
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _user = await _loginWithPhone(verificationId, smsCode);
+      _status = AuthStatus.authenticated;
+      return true;
+    } catch (e) {
+      _error = Failure.from(e).message;
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void clearError() {

@@ -1,15 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_helper.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../providers/auth_provider.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String phone;
-  const OtpVerificationPage({super.key, required this.phone});
+  final String? verificationId;
+  const OtpVerificationPage({
+    super.key,
+    required this.phone,
+    this.verificationId,
+  });
 
   @override
   State<OtpVerificationPage> createState() => _OtpVerificationPageState();
@@ -64,7 +71,25 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       return;
     }
     setState(() => _isVerifying = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+
+    if (widget.verificationId != null && widget.verificationId!.isNotEmpty) {
+      final auth = context.read<AuthProvider>();
+      final ok = await auth.verifyOtpAndLogin(
+        verificationId: widget.verificationId!,
+        smsCode: code,
+      );
+      if (!mounted) return;
+      setState(() => _isVerifying = false);
+      if (ok) {
+        SnackbarHelper.success(context, 'Signed in successfully via phone verification!');
+        Navigator.pop(context, true);
+      } else {
+        SnackbarHelper.error(context, auth.error ?? 'Invalid verification code.');
+      }
+      return;
+    }
+
+    await Future.delayed(const Duration(milliseconds: 1000));
     if (!mounted) return;
     setState(() => _isVerifying = false);
 
@@ -93,85 +118,122 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
         title: const Text('OTP Verification', style: TextStyle(fontSize: 16)),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              const CircleAvatar(
-                radius: 36,
-                backgroundColor: AppColors.successLight,
-                child: Icon(Icons.mark_email_read_outlined,
-                    color: AppColors.brandGreen, size: 36),
-              ),
-              const SizedBox(height: 20),
-              Text('Enter Verification Code',
-                  style: AppTextStyles.h1.copyWith(fontSize: 20)),
-              const SizedBox(height: 8),
-              Text(
-                'We have sent a 6-digit confirmation code to $maskedPhone',
-                textAlign: TextAlign.center,
-                style: AppTextStyles.caption.copyWith(fontSize: 13),
-              ),
-              const SizedBox(height: 32),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isLandscape = constraints.maxWidth > constraints.maxHeight;
+            final isCompactHeight = constraints.maxHeight < 550;
 
-              // 6 PIN Boxes (Figma)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(6, (i) => _pinBox(i)),
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: EdgeInsets.symmetric(
+                horizontal: constraints.maxWidth > 500 ? (constraints.maxWidth - 440) / 2 : 20,
+                vertical: isCompactHeight ? 12 : 24,
               ),
-              const SizedBox(height: 32),
-
-              CustomButton(
-                label: 'Verify & Proceed',
-                isLoading: _isVerifying,
-                onPressed: _verify,
-              ),
-              const SizedBox(height: 24),
-
-              // Countdown / Resend
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Didn't receive the code? ",
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  GestureDetector(
-                    onTap: _resendCountdown == 0 ? _resendCode : null,
-                    child: Text(
-                      _resendCountdown > 0
-                          ? 'Resend in ${_resendCountdown}s'
-                          : 'Resend OTP',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: _resendCountdown == 0
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
-                        decoration: _resendCountdown == 0
-                            ? TextDecoration.underline
-                            : TextDecoration.none,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - (isCompactHeight ? 24 : 48),
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (!isCompactHeight) ...[
+                        const SizedBox(height: 10),
+                        CircleAvatar(
+                          radius: isLandscape ? 24 : 36,
+                          backgroundColor: AppColors.successLight,
+                          child: Icon(
+                            Icons.mark_email_read_outlined,
+                            color: AppColors.brandGreen,
+                            size: isLandscape ? 24 : 36,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      Text(
+                        'Enter Verification Code',
+                        style: AppTextStyles.h1.copyWith(
+                          fontSize: isCompactHeight ? 18 : 20,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'We have sent a 6-digit confirmation code to $maskedPhone',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.caption.copyWith(fontSize: 12),
+                      ),
+                      SizedBox(height: isCompactHeight ? 16 : 28),
+
+                      // Responsive 6 PIN Boxes (Figma)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          6,
+                          (i) => Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: _pinBox(i),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: isCompactHeight ? 20 : 28),
+
+                      CustomButton(
+                        label: 'Verify & Proceed',
+                        isLoading: _isVerifying,
+                        onPressed: _verify,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Countdown / Resend
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Didn't receive the code? ",
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                          GestureDetector(
+                            onTap: _resendCountdown == 0 ? _resendCode : null,
+                            child: Text(
+                              _resendCountdown > 0
+                                  ? 'Resend in ${_resendCountdown}s'
+                                  : 'Resend OTP',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: _resendCountdown == 0
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary,
+                                decoration: _resendCountdown == 0
+                                    ? TextDecoration.underline
+                                    : TextDecoration.none,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _pinBox(int index) => SizedBox(
-        width: 44,
-        height: 52,
+  Widget _pinBox(int index) => ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 48, minWidth: 36, maxHeight: 52),
         child: TextField(
           controller: _controllers[index],
           focusNode: _focusNodes[index],
           keyboardType: TextInputType.number,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           maxLength: 1,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(

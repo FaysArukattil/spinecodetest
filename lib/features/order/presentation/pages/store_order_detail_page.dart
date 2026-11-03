@@ -214,54 +214,69 @@ class StoreOrderDetailPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                for (final item in o.items)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(item.name,
-                                  style: const TextStyle(
-                                      fontSize: 13, fontWeight: FontWeight.w600)),
-                              Text(
-                                '${Formatters.money(item.price)} / ${item.unit}',
-                                style: const TextStyle(
-                                    fontSize: 11, color: AppColors.textSecondary),
+                Flexible(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.sizeOf(ctx).height * 0.45,
+                    ),
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final item in o.items)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(item.name,
+                                            style: const TextStyle(
+                                                fontSize: 13, fontWeight: FontWeight.w600)),
+                                        Text(
+                                          '${Formatters.money(item.price)} / ${item.unit}',
+                                          style: const TextStyle(
+                                              fontSize: 11, color: AppColors.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline, size: 20),
+                                    onPressed: (quantities[item.vegetableId] ?? 0) <= 0
+                                        ? null
+                                        : () {
+                                            setModalState(() {
+                                              final current = quantities[item.vegetableId] ?? 0;
+                                              quantities[item.vegetableId] =
+                                                  (current - 1).clamp(0, 9999);
+                                            });
+                                          },
+                                  ),
+                                  Text(
+                                    '${Formatters.qty(quantities[item.vegetableId] ?? 0)} ${item.unit}',
+                                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                                    onPressed: () {
+                                      setModalState(() {
+                                        final current = quantities[item.vegetableId] ?? 0;
+                                        quantities[item.vegetableId] = current + 1;
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline, size: 20),
-                          onPressed: (quantities[item.vegetableId] ?? 0) <= 0
-                              ? null
-                              : () {
-                                  setModalState(() {
-                                    final current = quantities[item.vegetableId] ?? 0;
-                                    quantities[item.vegetableId] =
-                                        (current - 1).clamp(0, 9999);
-                                  });
-                                },
-                        ),
-                        Text(
-                          '${Formatters.qty(quantities[item.vegetableId] ?? 0)} ${item.unit}',
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline, size: 20),
-                          onPressed: () {
-                            setModalState(() {
-                              final current = quantities[item.vegetableId] ?? 0;
-                              quantities[item.vegetableId] = current + 1;
-                            });
-                          },
-                        ),
-                      ],
+                            ),
+                        ],
+                      ),
                     ),
                   ),
+                ),
                 const SizedBox(height: 16),
                 CustomButton(
                   label: 'Save Changes',
