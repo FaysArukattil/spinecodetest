@@ -84,17 +84,12 @@ class _LoginPageState extends State<LoginPage> {
           verificationId: verificationId,
         ),
       ),
-    ).then((verified) async {
-      if (verified == true && mounted) {
-        if (auth.user == null) {
-          await auth.loginWithDemoPhone(_phone.text.trim());
-        }
-        if (mounted && auth.user != null) {
-          nav.pushNamedAndRemoveUntil(
-            AppRoutes.homeFor(auth.user!),
-            (_) => false,
-          );
-        }
+    ).then((verified) {
+      if (verified == true && mounted && auth.user != null) {
+        nav.pushNamedAndRemoveUntil(
+          AppRoutes.homeFor(auth.user!),
+          (_) => false,
+        );
       }
     });
   }

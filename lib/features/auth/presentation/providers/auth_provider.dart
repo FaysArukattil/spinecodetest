@@ -139,15 +139,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loginWithDemoPhone(String phone) async {
+  Future<bool> loginWithDemoPhone(String phone) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       _user = await _demoLoginWithPhone(phone);
       _status = AuthStatus.authenticated;
+      return true;
     } catch (e) {
       _error = Failure.from(e).message;
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

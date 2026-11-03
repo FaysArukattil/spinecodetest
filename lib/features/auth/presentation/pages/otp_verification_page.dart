@@ -83,12 +83,19 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       return;
     }
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.loginWithDemoPhone(widget.phone);
     if (!mounted) return;
     setState(() => _isVerifying = false);
-
-    SnackbarHelper.success(context, 'Mobile number verified successfully!');
-    Navigator.pop(context, true);
+    if (ok) {
+      SnackbarHelper.success(context, 'Mobile number verified successfully!');
+      Navigator.pop(context, true);
+    } else {
+      SnackbarHelper.error(
+        context,
+        auth.error ?? 'This phone number is not registered with any shop.',
+      );
+    }
   }
 
   void _resendCode() {
