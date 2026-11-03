@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../reports/presentation/pages/sales_report_page.dart';
 import '../../../shop/presentation/pages/shop_list_page.dart';
+import '../../../staff/presentation/pages/staff_list_page.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -14,12 +16,32 @@ class MenuPage extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             _MenuTile(
+              icon: Icons.people_outline,
+              title: 'Staff Management',
+              subtitle: 'Add, view, and manage staff members',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StaffListPage()),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _MenuTile(
               icon: Icons.storefront_outlined,
               title: 'Shops',
               subtitle: 'Add, view, and manage shops',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ShopListPage()),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _MenuTile(
+              icon: Icons.bar_chart_outlined,
+              title: 'Sales Reports',
+              subtitle: 'Filter orders by shop, date, and metrics',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SalesReportPage()),
               ),
             ),
           ],

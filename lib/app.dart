@@ -20,6 +20,7 @@ import 'features/order/domain/usecases/cancel_order_usecase.dart';
 import 'features/order/domain/usecases/get_orders_usecase.dart';
 import 'features/order/domain/usecases/get_shop_orders_usecase.dart';
 import 'features/order/domain/usecases/place_order_usecase.dart';
+import 'features/order/domain/usecases/update_order_items_usecase.dart';
 import 'features/order/domain/usecases/update_order_status_usecase.dart';
 import 'features/order/presentation/providers/order_provider.dart';
 import 'features/shop/data/datasources/shop_remote_datasource.dart';
@@ -30,6 +31,13 @@ import 'features/shop/domain/usecases/get_shops_usecase.dart';
 import 'features/shop/domain/usecases/toggle_shop_status_usecase.dart';
 import 'features/shop/domain/usecases/update_shop_usecase.dart';
 import 'features/shop/presentation/providers/shop_provider.dart';
+import 'features/staff/data/datasources/staff_remote_datasource.dart';
+import 'features/staff/data/repositories/staff_repository_impl.dart';
+import 'features/staff/domain/usecases/add_staff_usecase.dart';
+import 'features/staff/domain/usecases/delete_staff_usecase.dart';
+import 'features/staff/domain/usecases/get_staff_usecase.dart';
+import 'features/staff/domain/usecases/update_staff_usecase.dart';
+import 'features/staff/presentation/providers/staff_provider.dart';
 import 'features/vegetable/data/datasources/vegetable_remote_datasource.dart';
 import 'features/vegetable/data/repositories/vegetable_repository_impl.dart';
 import 'features/vegetable/domain/usecases/add_vegetable_usecase.dart';
@@ -51,6 +59,7 @@ class MyApp extends StatelessWidget {
     );
     final vegRepo = VegetableRepositoryImpl(VegetableRemoteDataSource());
     final shopRepo = ShopRepositoryImpl(ShopRemoteDataSource());
+    final staffRepo = StaffRepositoryImpl(StaffRemoteDataSource());
     final orderRepo = OrderRepositoryImpl(OrderRemoteDataSource());
 
     return MultiProvider(
@@ -89,6 +98,18 @@ class MyApp extends StatelessWidget {
             return previous!;
           },
         ),
+        ChangeNotifierProxyProvider<AuthProvider, StaffProvider>(
+          create: (_) => StaffProvider(
+            getStaff: GetStaffUseCase(staffRepo),
+            addStaff: AddStaffUseCase(staffRepo),
+            updateStaff: UpdateStaffUseCase(staffRepo),
+            deleteStaff: DeleteStaffUseCase(staffRepo),
+          ),
+          update: (_, auth, previous) {
+            if (auth.status != AuthStatus.authenticated) previous!.stop();
+            return previous!;
+          },
+        ),
         // The cart is emptied on logout so the next user starts clean.
         ChangeNotifierProxyProvider<AuthProvider, CartProvider>(
           create: (_) => CartProvider(),
@@ -103,6 +124,7 @@ class MyApp extends StatelessWidget {
             getShopOrders: GetShopOrdersUseCase(orderRepo),
             placeOrder: PlaceOrderUseCase(orderRepo),
             updateStatus: UpdateOrderStatusUseCase(orderRepo),
+            updateItems: UpdateOrderItemsUseCase(orderRepo),
             cancelOrder: CancelOrderUseCase(orderRepo),
           ),
           update: (_, auth, previous) {

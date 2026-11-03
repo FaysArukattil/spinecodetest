@@ -40,9 +40,11 @@ class _VegetableListPageState extends State<VegetableListPage> {
     }
     final yes = await ConfirmDialog.show(
       context,
-      title: makeAvailable ? 'Mark Available' : 'Mark Out of Stock',
+      title: makeAvailable ? 'Available' : 'Unavailable',
       message:
-          'Are you sure "${v.name}" is ${makeAvailable ? 'available' : 'out of stock'}?',
+          'Are you sure "${v.name}" is ${makeAvailable ? 'available' : 'unavailable'}?',
+      confirmLabel: 'Yes',
+      cancelLabel: 'Cancel',
       color: makeAvailable ? AppColors.success : AppColors.error,
     );
     if (!yes || !mounted) return;
@@ -124,7 +126,7 @@ class _VegetableListPageState extends State<VegetableListPage> {
             ? 'No vegetables match "$_query"'
             : (_showAvailable
                   ? 'No available vegetables'
-                  : 'No out of stock vegetables'),
+                  : 'No unavailable vegetables'),
         icon: Icons.eco_outlined,
       );
     }
@@ -166,7 +168,7 @@ class _Tabs extends StatelessWidget {
       children: [
         _tab('Available $availableCount', showAvailable, () => onChanged(true)),
         _tab(
-          'Out of Stock $unavailableCount',
+          'Unavailable $unavailableCount',
           !showAvailable,
           () => onChanged(false),
         ),

@@ -44,11 +44,14 @@ class _StoreDashboardPageState extends State<StoreDashboardPage> {
           index: _index,
           children: [
             _HomeTab(
-              onViewAll: () => setState(() => _index = 3),
-              onNavigate: (i) => setState(() => _index = i),
+              onViewAll: () => setState(() => _index = 2),
+              onNavigateVegetables: () => setState(() => _index = 1),
+              onOpenShops: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ShopListPage()),
+              ),
             ),
             const VegetableListPage(),
-            const ShopListPage(showAppBar: false),
             const StoreOrderListPage(),
           ],
         ),
@@ -67,10 +70,6 @@ class _StoreDashboardPageState extends State<StoreDashboardPage> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.eco_outlined), activeIcon: Icon(Icons.eco), label: 'Vegetables'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.storefront_outlined),
-                activeIcon: Icon(Icons.storefront),
-                label: 'Shops'),
-            BottomNavigationBarItem(
                 icon: Icon(Icons.shopping_bag_outlined),
                 activeIcon: Icon(Icons.shopping_bag),
                 label: 'Orders'),
@@ -81,8 +80,13 @@ class _StoreDashboardPageState extends State<StoreDashboardPage> {
 
 class _HomeTab extends StatelessWidget {
   final VoidCallback onViewAll;
-  final ValueChanged<int> onNavigate;
-  const _HomeTab({required this.onViewAll, required this.onNavigate});
+  final VoidCallback onNavigateVegetables;
+  final VoidCallback onOpenShops;
+  const _HomeTab({
+    required this.onViewAll,
+    required this.onNavigateVegetables,
+    required this.onOpenShops,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -126,9 +130,9 @@ class _HomeTab extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               Row(children: [
-                _StatCard('Pending', orders.pendingCount, AppColors.statOrange),
+                _StatCard('Scheduled', orders.pendingCount, AppColors.statOrange),
                 const SizedBox(width: 10),
-                _StatCard('Orders', orders.orders.length, AppColors.statYellow),
+                _StatCard('Order', orders.orders.length, AppColors.statYellow),
                 const SizedBox(width: 10),
                 _StatCard('Completed', orders.completedCount, AppColors.statGreen),
               ]),
@@ -136,7 +140,7 @@ class _HomeTab extends StatelessWidget {
               Row(children: [
                 Expanded(
                   child: InkWell(
-                    onTap: () => onNavigate(1),
+                    onTap: onNavigateVegetables,
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.all(12),
@@ -161,7 +165,7 @@ class _HomeTab extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: InkWell(
-                    onTap: () => onNavigate(2),
+                    onTap: onOpenShops,
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.all(12),

@@ -63,7 +63,7 @@ class ShopCard extends StatelessWidget {
                   StatusToggle(
                     value: shop.isActive,
                     onLabel: 'Active',
-                    offLabel: 'Blocked',
+                    offLabel: 'Inactive',
                     onChanged: onToggle,
                   ),
                 ]),

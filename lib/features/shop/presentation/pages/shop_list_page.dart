@@ -33,10 +33,10 @@ class _ShopListPageState extends State<ShopListPage> {
     final p = context.read<ShopProvider>();
     final yes = await ConfirmDialog.show(
       context,
-      title: activate ? 'Activate Shop' : 'Block Shop',
-      message: 'Are you sure you want to ${activate ? 'activate' : 'block'} "${shop.shopName}"?',
-      confirmLabel: activate ? 'Yes, Activate' : 'Yes, Block',
-      cancelLabel: 'Cancel',
+      title: activate ? 'Activate Shop' : 'Deactivate Shop',
+      message: 'Are you sure you want to ${activate ? 'activate' : 'deactivate'} "${shop.shopName}"?',
+      confirmLabel: 'Yes',
+      cancelLabel: 'No',
       color: activate ? AppColors.success : AppColors.error,
     );
     if (!yes || !mounted) return;

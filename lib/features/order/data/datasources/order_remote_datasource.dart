@@ -4,6 +4,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/firestore_keys.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/formatters.dart';
+import '../models/order_item_model.dart';
 import '../models/order_model.dart';
 
 class OrderRemoteDataSource {
@@ -132,6 +133,15 @@ class OrderRemoteDataSource {
       }
 
       tx.update(ref, {FirestoreKeys.status: newStatus});
+    });
+  }
+
+  /// Updates items and totalAmount of an order (e.g. store edits pending order).
+  Future<void> updateOrderItems(String orderId, List<OrderItemModel> items) async {
+    final double total = items.fold(0.0, (acc, i) => acc + i.lineTotal);
+    await _orders.doc(orderId).update({
+      FirestoreKeys.items: items.map((i) => i.toMap()).toList(),
+      FirestoreKeys.totalAmount: total,
     });
   }
 }

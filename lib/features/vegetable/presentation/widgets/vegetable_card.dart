@@ -75,7 +75,7 @@ class VegetableCard extends StatelessWidget {
                 StatusToggle(
                   value: veg.isAvailable,
                   onLabel: 'Available',
-                  offLabel: 'Out of Stock',
+                  offLabel: 'Unavailable',
                   onChanged: onToggle,
                 ),
               ]),

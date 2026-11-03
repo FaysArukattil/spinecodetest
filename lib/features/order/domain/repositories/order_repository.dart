@@ -1,4 +1,5 @@
 import '../entities/order_entity.dart';
+import '../entities/order_item_entity.dart';
 
 abstract class OrderRepository {
   Stream<List<OrderEntity>> watchAllOrders();
@@ -9,4 +10,6 @@ abstract class OrderRepository {
   Future<void> placeOrder(OrderEntity order);
 
   Future<void> updateStatus(String orderId, String newStatus);
+
+  Future<void> updateOrderItems(String orderId, List<OrderItemEntity> items);
 }
