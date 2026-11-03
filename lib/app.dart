@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/constants/app_constants.dart';
+import 'core/routes/app_routes.dart';
+import 'core/routes/route_generator.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
@@ -30,7 +32,7 @@ class MyApp extends StatelessWidget {
             login: LoginUseCase(authRepo),
             logout: LogoutUseCase(authRepo),
             getSession: GetSessionUseCase(authRepo),
-          )..checkSession(),
+          ), // session is checked by SplashPage
         ),
         // more providers get added here in later steps
       ],
@@ -38,24 +40,8 @@ class MyApp extends StatelessWidget {
         title: AppConstants.appName,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        home: const _TempHome(), // replaced by SplashPage in Step 3
-      ),
-    );
-  }
-}
-
-/// Temporary screen just to verify Firebase + session work.
-class _TempHome extends StatelessWidget {
-  const _TempHome();
-
-  @override
-  Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    return Scaffold(
-      body: Center(
-        child: Text(
-          'Session: ${auth.status.name}\nUser: ${auth.user?.email ?? '-'}',
-        ),
+        initialRoute: AppRoutes.splash,
+        onGenerateRoute: RouteGenerator.generate,
       ),
     );
   }
