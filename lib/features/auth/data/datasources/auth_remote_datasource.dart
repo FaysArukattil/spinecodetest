@@ -77,10 +77,41 @@ class AuthRemoteDataSource {
       return _loadUser(uid);
     }
 
+    // Match phone number with registered shops
+    final phoneNum = cred.user?.phoneNumber ?? '';
+    final digits = phoneNum.replaceAll(RegExp(r'\D'), '');
+    final tenDigit = digits.length >= 10 ? digits.substring(digits.length - 10) : digits;
+
+    if (tenDigit.isNotEmpty) {
+      try {
+        final snap = await _db
+            .collection(FirestoreKeys.shops)
+            .where(FirestoreKeys.phone, isEqualTo: tenDigit)
+            .limit(1)
+            .get();
+        if (snap.docs.isNotEmpty) {
+          final d = snap.docs.first;
+          if (d.data()[FirestoreKeys.status] != AppConstants.shopActive) {
+            throw const AppException(
+              'Your shop has been blocked. Please contact the store.',
+            );
+          }
+          return UserModel(
+            id: d.id,
+            name: (d.data()[FirestoreKeys.shopName] ?? 'Shop') as String,
+            email: (d.data()[FirestoreKeys.email] ?? '') as String,
+            role: AppConstants.roleShop,
+          );
+        }
+      } on AppException {
+        rethrow;
+      } catch (_) {}
+    }
+
     return UserModel(
       id: uid,
       email: cred.user?.phoneNumber ?? 'phone@plantlets.com',
-      name: 'Mobile User',
+      name: 'Store Admin',
       role: AppConstants.roleStore,
     );
   }
@@ -88,14 +119,20 @@ class AuthRemoteDataSource {
   /// Demo login when phone provider is not yet enabled in Firebase Console.
   Future<UserModel> demoLoginWithPhone(String phone) async {
     final clean = phone.replaceAll(RegExp(r'\D'), '');
+    final tenDigit = clean.length >= 10 ? clean.substring(clean.length - 10) : clean;
     try {
       final snap = await _db
           .collection(FirestoreKeys.shops)
-          .where(FirestoreKeys.phone, isEqualTo: clean)
+          .where(FirestoreKeys.phone, isEqualTo: tenDigit)
           .limit(1)
           .get();
       if (snap.docs.isNotEmpty) {
         final d = snap.docs.first;
+        if (d.data()[FirestoreKeys.status] != AppConstants.shopActive) {
+          throw const AppException(
+            'Your shop has been blocked. Please contact the store.',
+          );
+        }
         return UserModel(
           id: d.id,
           name: (d.data()[FirestoreKeys.shopName] ?? 'Shop') as String,
@@ -103,6 +140,8 @@ class AuthRemoteDataSource {
           role: AppConstants.roleShop,
         );
       }
+    } on AppException {
+      rethrow;
     } catch (_) {}
 
     return const UserModel(
